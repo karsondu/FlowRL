@@ -1,18 +1,31 @@
-from flow_env import FlowEnv
+from image_parser import extract_grid
+from solver import solve_flow
+from render import draw_solution
+import cv2
 
-board = [
-    ["R", ".", ".", "B"],
-    [".", ".", ".", "."],
-    ["R", ".", ".", "B"]
-]
+IMAGE_PATH = "puzzle.png"
 
-endpoints = {
-    "R": [(0,0), (2,0)],
-    "B": [(0,3), (2,3)]
-}
-env = FlowEnv(board,endpoints)
 
-env.print_board()
-print(env.step(("R",0,0,"right")))
-print(env.step(("R",0,1,"right")))
+def clean_endpoints(endpoints):
+    cleaned = {}
+    for color, pts in endpoints.items():
+        if len(pts) >= 2:
+            cleaned[color] = pts[:2]
+    return cleaned
 
+
+board, endpoints, img = extract_grid(IMAGE_PATH, grid_size=5)
+
+print("RAW endpoints:", endpoints)
+
+endpoints = clean_endpoints(endpoints)
+
+print("CLEAN endpoints:", endpoints)
+
+paths = solve_flow(board, endpoints)
+
+output = draw_solution(img, paths)
+
+cv2.imwrite("solved.png", output)
+
+print("Saved solved.png")
